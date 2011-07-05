@@ -168,7 +168,9 @@ This takes all the commits you’ve made on top of the Subversion server code, d
 
 Обратите внимание — контрольная сумма SHA, которая начиналась с `97031e5` когда вы делали коммит, теперь начинается с `938b1a5`. Если вы хотите отправить изменения как на сервер Git, так и на сервер Subversion, вы должны отправить их (`dcommit`) сначала на сервер Subversion, поскольку это действией изменит отправляемые данные.
 
-### Pulling in New Changes ###
+### Получение новых изменений ###
+Pulling in New Changes
+
 
 If you’re working with other developers, then at some point one of you will push, and then the other one will try to push a change that conflicts. That change will be rejected until you merge in their work. In `git svn`, it looks like this:
 
