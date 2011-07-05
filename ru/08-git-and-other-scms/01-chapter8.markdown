@@ -154,6 +154,7 @@ Next, you need to push your change upstream. Notice how this changes the way you
 	No changes between current HEAD and refs/remotes/trunk
 	Resetting to the latest refs/remotes/trunk
 
+Это действие соберёт вместе все коммиты, сделанные вами в коде репозитория Subversion, выполнит коммит для каждого из них, а затем перепишет ваш локальный коммит Git для того, чтобы он имел уникальный идентификатор. Это момент очень важен, поскольку это означает, что изменятся все SHA-1 контрольные суммы ваших коммитов. Частично по этой причине одновременная совместная работа с удалёнными версиями проекта, расположенными на серверах Git и серверах Subversion не очень хорошая идея. Если вы посмотрите на детали последнего коммита, вы увидите, что добавился новый `git-svn-id`.
 This takes all the commits you’ve made on top of the Subversion server code, does a Subversion commit for each, and then rewrites your local Git commit to include a unique identifier. This is important because it means that all the SHA-1 checksums for your commits change. Partly for this reason, working with Git-based remote versions of your projects concurrently with a Subversion server isn’t a good idea. If you look at the last commit, you can see the new `git-svn-id` that was added:
 
 	$ git log -1
@@ -165,7 +166,7 @@ This takes all the commits you’ve made on top of the Subversion server code, d
 
 	    git-svn-id: file:///tmp/test-svn/trunk@79 4c93b258-373f-11de-be05-5f7a86268029
 
-Notice that the SHA checksum that originally started with `97031e5` when you committed now begins with `938b1a5`. If you want to push to both a Git server and a Subversion server, you have to push (`dcommit`) to the Subversion server first, because that action changes your commit data.
+Обратите внимание — контрольная сумма SHA, которая начиналась с `97031e5` когда вы делали коммит, теперь начинается с `938b1a5`. Если вы хотите отправить изменения как на сервер Git, так и на сервер Subversion, вы должны отправить их (`dcommit`) сначала на сервер Subversion, поскольку это действией изменит отправляемые данные.
 
 ### Pulling in New Changes ###
 
