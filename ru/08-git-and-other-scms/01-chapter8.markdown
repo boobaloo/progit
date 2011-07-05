@@ -1,10 +1,10 @@
 # GIT и другие системы контроля версий #
 Git and Other Systems
 
-Как известно, мир несовершенен. Как правило вы не сможете моментально перевести любой проект, в котором вы участвуете на использование Git. Иногда вам придется иметь дело с проектами, использующими другую систему контроля версий, и в большинстве случаев, этой системой будет Subversion. Первая часть этого раздела научит вас обращаться с `git svn`, встроенным в Git двухсторонним интерфейсом обмена с Subversion.
+Наш мир несовершенен. Как правило, вы не сможете моментально перевести любой проект, в котором вы участвуете, на использование Git. Иногда вам придется иметь дело с проектами, использующими другую систему контроля версий, и, в большинстве случаев, этой системой будет Subversion. Первая часть этого раздела научит вас обращаться с `git svn` — встроенным в Git двухсторонним интерфейсом обмена с Subversion.
 The world isn’t perfect. Usually, you can’t immediately switch every project you come in contact with to Git. Sometimes you’re stuck on a project using another VCS, and many times that system is Subversion. You’ll spend the first part of this chapter learning about `git svn`, the bidirectional Subversion gateway tool in Git.
 
-В какой-то момент, вы возможно захотите перевести свой существующий проект на Git. Вторая часть раздела расскажет о том, как выполнить этот перенос: сначала с Subversion, потом с Perforce, и наконец, с помощью написания собственного сценария для нестандартных вариантов миграции.
+В какой-то момент, вы возможно захотите перевести свой существующий проект на Git. Вторая часть раздела расскажет о том, как провести миграцию: сначала с Subversion, потом с Perforce, и наконец, с помощью написания собственного сценария для нестандартных вариантов миграции.
 At some point, you may want to convert your existing project to Git. The second part of this chapter covers how to migrate your project into Git: first from Subversion, then from Perforce, and finally via a custom import script for a nonstandard importing case. 
 
 ## Git и Subversion ##
