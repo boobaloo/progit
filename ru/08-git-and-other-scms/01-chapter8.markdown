@@ -234,10 +234,13 @@ You should also run this command to pull in changes from the Subversion server, 
 Выполняйте команду `git svn rebase` периодически, чтобы быть уверенным в том, что ваш код имеет самую свежую версию. Однако перед выполнением этой команды вы должны быть уверены, что в рабочем каталоге нет невнесённых изменений. В противном случае, вы должны либо спрятать свои изменения, либо временно закоммитить их до выполнения `git svn rebase`, в противном случае, выполнение команды прекратится, если возникнет угроза конфликта слияния.
 Running `git svn rebase` every once in a while makes sure your code is always up to date. You need to be sure your working directory is clean when you run this, though. If you have local changes, you must either stash your work or temporarily commit it before running `git svn rebase` — otherwise, the command will stop if it sees that the rebase will result in a merge conflict.
 
-### Git Branching Issues ###
+### Проблемы создания веток в Git ###
+Git Branching Issues
 
+Теперь, когда вы привыкли к рабочему процессу в Git, вам скорее всего захочется создать ветки для работы над конкретными заданиями, а затем слить изменения вместе. Если вы отправляете изменения на сервер Subversion через `git svn`, вам возможно потребуется перемещать свою работу каждый раз в одну ветку, а не сливать вместе изменения из нескольких. Причина, по которой предпочтение должно быть отдано именно такому подходу, заключается в том, что Subversion имеет линейную историю изменений и не может обрабатывать слияния так, как это делает Git, таким образом `git svn` следует только за первым родительским элементом при конвертации снимков состояния в коммиты Subversion.
 When you’ve become comfortable with a Git workflow, you’ll likely create topic branches, do work on them, and then merge them in. If you’re pushing to a Subversion server via git svn, you may want to rebase your work onto a single branch each time instead of merging branches together. The reason to prefer rebasing is that Subversion has a linear history and doesn’t deal with merges like Git does, so git svn follows only the first parent when converting the snapshots into Subversion commits.
 
+Допустим, что истори изменениц выглядит следующим образом: вы создали ветку `experiment`, сделали два коммита, а затем слили их вместе в ветку `master`. Если вы выполните `dcommit`, результат будет следующим:
 Suppose your history looks like the following: you created an `experiment` branch, did two commits, and then merged them back into `master`. When you `dcommit`, you see output like this:
 
 	$ git svn dcommit
