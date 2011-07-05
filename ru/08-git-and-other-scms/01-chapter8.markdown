@@ -129,16 +129,20 @@ It’s important to note how this tool namespaces your remote references differe
 
 Вы имееете два удалённых сервера: один именуемый `gitserver` с ветвью `master`; и другой, именуемый `origin` с двумя ветвями, `master` и `testing`. 
 
+Обратите внимание, как в этом примере метки добавлены так, как будто они являются ветвями, а не так ,как настоящие метки Git. Импортированные вами из Subversion данные выглядят так, как будто имеют метки по имени удалённого ресурса, с ветвями, находящимися уровнем ниже.
 Notice how in the example of remote references imported from `git svn`, tags are added as remote branches, not as real Git tags. Your Subversion import looks like it has a remote named tags with branches under it.
 
-### Committing Back to Subversion ###
+### Коммит в Subversion ###
+Committing Back to Subversion
 
+Теперь, когда вы имеете рабочий репозиторий, вы можете выполнить какую-либо работу с кодом и выполнить коммит в апстрим, эффективно используя Git в качестве клиента SVN. Если вы редактировали один из файлов и закоммитили его, вы имеете внесённое изменение в локальный репозиторий Git, которое пока не существует на сервере Subversion: 
 Now that you have a working repository, you can do some work on the project and push your commits back upstream, using Git effectively as a SVN client. If you edit one of the files and commit it, you have a commit that exists in Git locally that doesn’t exist on the Subversion server:
 
 	$ git commit -am 'Adding git-svn instructions to the README'
 	[master 97031e5] Adding git-svn instructions to the README
 	 1 files changed, 1 insertions(+), 1 deletions(-)
 
+После этого, вам надо отправить изменения в апстрим. Обратите внимание, как Git изменяет способ работы с Subversion — вы можете сделать несколько коммитов оффлайн, а затем отправить их разом на сервер Subversion. Для передачи изменений на сервер Subversion требуется выполнить команду `git svn dcommit:
 Next, you need to push your change upstream. Notice how this changes the way you work with Subversion — you can do several commits offline and then push them all at once to the Subversion server. To push to a Subversion server, you run the `git svn dcommit` command:
 
 	$ git svn dcommit
