@@ -171,7 +171,7 @@ This takes all the commits you’ve made on top of the Subversion server code, d
 ### Получение новых изменений ###
 Pulling in New Changes
 
-
+Если вы работаете совместно с другими разработчиками, значит когда-нибудь вам придётся столкнуться с ситуацией, когда кто-либо из вас будет отправлять изменения, а другой, в свою очередь, будет отправлять свои изменения, которые будут конфликтовать с первыми. Это изменение не будет принято до тех пор, пока вы не сольёте их вместе. В `git svn` эта ситуация будет выглядеть следующим образом:
 If you’re working with other developers, then at some point one of you will push, and then the other one will try to push a change that conflicts. That change will be rejected until you merge in their work. In `git svn`, it looks like this:
 
 	$ git svn dcommit
@@ -180,6 +180,7 @@ If you’re working with other developers, then at some point one of you will pu
 	out-of-date: resource out of date; try updating at /Users/schacon/libexec/git-\
 	core/git-svn line 482
 
+Для разрешения этой проблемы, вам нужно выполнить команду `git svn rebase`, которая получит все изменения, имеющиеся на сервере, которых ещё нет на вашей локальной машине и переместит все ваши недавние изменения на их место на сервере: 
 To resolve this situation, you can run `git svn rebase`, which pulls down any changes on the server that you don’t have yet and rebases any work you have on top of what is on the server:
 
 	$ git svn rebase
@@ -188,6 +189,7 @@ To resolve this situation, you can run `git svn rebase`, which pulls down any ch
 	First, rewinding head to replay your work on top of it...
 	Applying: first user change
 
+Теперь все ваши изменения заняли место на сервере Subversion, так что вы можете спокойно выполнить `dcommit`:
 Now, all your work is on top of what is on the Subversion server, so you can successfully `dcommit`:
 
 	$ git svn dcommit
@@ -199,6 +201,7 @@ Now, all your work is on top of what is on the Subversion server, so you can suc
 	No changes between current HEAD and refs/remotes/trunk
 	Resetting to the latest refs/remotes/trunk
 
+Следует помнить, что в отличие от Git, при работе с которым вы должны совершать слияние с изменениями в апстриме, которые вы не имеете в настоящий момент локально до того, как сможете отправить свои изменения, `git svn` требует делать это только в случае конфликта правок. Если кто-либо внесёт изменения в один файл, а вы внесёте изменения в другой, команда `dcommit` сработает без ошибок.
 It’s important to remember that unlike Git, which requires you to merge upstream work you don’t yet have locally before you can push, `git svn` makes you do that only if the changes conflict. If someone else pushes a change to one file and then you push a change to another file, your `dcommit` will work fine:
 
 	$ git svn dcommit
@@ -216,6 +219,7 @@ It’s important to remember that unlike Git, which requires you to merge upstre
 	First, rewinding head to replay your work on top of it...
 	Nothing to do.
 
+Это важно запомнить, поскольку последствием таких действий может стать неопределённое состояние проекта на всех компьютерах. Если изменения несовместимы, но не ведут к конфликту изменений у вас могут возникнуть проблемы, которые трудно будет диагностировать. Это отличается от работы с сервером Git — там вы можете полностью проверить состояние проекта на клиентских машинах до публикации, в то время, как в SVN вы не можете даже быть уверены в том, что состояние проекта непосредственно перед коммитом и после него идентичны.
 This is important to remember, because the outcome is a project state that didn’t exist on either of your computers when you pushed. If the changes are incompatible but don’t conflict, you may get issues that are difficult to diagnose. This is different than using a Git server — in Git, you can fully test the state on your client system before publishing it, whereas in SVN, you can’t ever be certain that the states immediately before commit and after commit are identical.
 
 You should also run this command to pull in changes from the Subversion server, even if you’re not ready to commit yourself. You can run `git svn fetch` to grab the new data, but `git svn rebase` does the fetch and then updates your local commits.
