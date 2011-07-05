@@ -17,6 +17,7 @@ One of Git’s great features is a bidirectional bridge to Subversion called `gi
 
 ### git svn ###
 
+Основной командой Git для соединения со всеми командами Subversion является `git svn`. Вы будете вставлять это вначале любой команды.
 The base command in Git for all the Subversion bridging commands is `git svn`. You preface everything with that. It takes quite a few commands, so you’ll learn about the common ones while going through a few small workflows.
 
 It’s important to note that when you’re using `git svn`, you’re interacting with Subversion, which is a system that is far less sophisticated than Git. Although you can easily do local branching and merging, it’s generally best to keep your history as linear as possible by rebasing your work and avoiding doing things like simultaneously interacting with a Git remote repository.
