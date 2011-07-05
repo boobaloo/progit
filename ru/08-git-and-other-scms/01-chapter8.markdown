@@ -17,7 +17,7 @@ One of Git’s great features is a bidirectional bridge to Subversion called `gi
 
 ### git svn ###
 
-Основной командой Git для соединения со всеми командами Subversion является `git svn`. Вы будете вставлять это вначале любой команды.
+Основной командой Git для соединения со всеми командами Subversion является `git svn`. Вы будете вставлять эту строку в начале любой команды.
 The base command in Git for all the Subversion bridging commands is `git svn`. You preface everything with that. It takes quite a few commands, so you’ll learn about the common ones while going through a few small workflows.
 
 Важно отметить, что при использовании `git svn`, вы взаимодействуете с Subversion, системой, которая намного менее «продвинута», чем Git. Хотя вы и можете с лёгкостью делать локальное ветвление и слияние версий, но лучше всего будет сохранять историю действий в как можно более линейном виде с помощью перемещения кода и избегая таких действий, как одновременный обмен с удалённым репозиторием Git.
@@ -32,7 +32,7 @@ Setting Up
 Для того, чтобы попробовать этот функционал в действии, вам понадобится доступ с правом записи к обычному репозиторию SVN. Если вы хотите скопировать себе эти примеры, вы должны сделать копию моего тестового каталога с правом на запись в него. Для того, чтобы сделать это проще всего, вам потребуется утилита `svnsync`, входящая в состав последних версий Subversion (по крайней мере после версии 1.4). Для этих примеров, я создал новый репозиторий Subversion на Google Code, который был частичной копией проекта `protobuf` (утилита шифрования структурированных данных для их передачи по сети).
 To demonstrate this functionality, you need a typical SVN repository that you have write access to. If you want to copy these examples, you’ll have to make a writeable copy of my test repository. In order to do that easily, you can use a tool called `svnsync` that comes with more recent versions of Subversion — it should be distributed with at least 1.4. For these tests, I created a new Subversion repository on Google code that was a partial copy of the `protobuf` project, which is a tool that encodes structured data for network transmission. 
 
-Для того, чтобы продолжить, прежде всего создайте новый локальный репозиторий Subversion:
+Чтобы мы могли продолжить, прежде всего создайте новый локальный репозиторий Subversion:
 To follow along, you first need to create a new local Subversion repository:
 
 	$ mkdir /tmp/test-svn
@@ -51,6 +51,7 @@ You can now sync this project to your local machine by calling `svnsync init` wi
 
 	$ svnsync init file:///tmp/test-svn http://progit-example.googlecode.com/svn/ 
 
+Эта команда подготовит синхронизацию. После неё клонируйте код с помощью команды:
 This sets up the properties to run the sync. You can then clone the code by running
 
 	$ svnsync sync file:///tmp/test-svn
@@ -61,10 +62,13 @@ This sets up the properties to run the sync. You can then clone the code by runn
 	Committed revision 3.
 	...
 
+Хотя выполнение этой операции и может занять всего несколько минут, если вы попробуете скопировать свой исходный репозиторий в другой, удалённый репозиторий, процесс займёт примерно час, даже если в проекте будет менее ста изменений. Subversion клонирует каждое изменение последовательно, одно за другим, а затем вносит изменения в другой репозиторий — чудовищно неэффективно, однако это единственный простой способ выполнить это действие.
 Although this operation may take only a few minutes, if you try to copy the original repository to another remote repository instead of a local one, the process will take nearly an hour, even though there are fewer than 100 commits. Subversion has to clone one revision at a time and then push it back into another repository — it’s ridiculously inefficient, but it’s the only easy way to do this.
 
-### Getting Started ###
+### Приступим к работе ###
+Getting Started
 
+Теперь, когда в вашем распоряжении имеется репозиторий Subversion, для которого вы имеете право на запись, вы можете перейти к обычному набору действий. Вы начнёте работу с команды `git svn clone`, которая импортирует весь репозиторий Subversion в локальный репозиторий Git. Помните, что если вы производите импорт из реального удалённого репозитория Subversion, вы должны заменить строку `file:///tmp/test-svn` на реальный адрес вашего репозитория Subversion.
 Now that you have a Subversion repository to which you have write access, you can go through a typical workflow. You’ll start with the `git svn clone` command, which imports an entire Subversion repository into a local Git repository. Remember that if you’re importing from a real hosted Subversion repository, you should replace the `file:///tmp/test-svn` here with the URL of your Subversion repository:
 
 	$ git svn clone file:///tmp/test-svn -T trunk -b branches -t tags
@@ -83,12 +87,15 @@ Now that you have a Subversion repository to which you have write access, you ca
 	Checked out HEAD:
 	 file:///tmp/test-svn/branches/my-calc-branch r76
 
+Эта команда эквивалентна выполнению двух команд — `git svn init` и следующей за ней `git svn fetch` — для указанного вами URL. Процесс может занять некоторое время. Тестовый проект имеет всего лишь около 75 изменений, и кода там не очень много, так что скорее всего, вам придётся подождать всего несколько минут. Однако, Git должен по-отдельности проверить и выполнить коммит каждой версии. Для проектов, имеющих историю с сотнями и тысячами изменений, этот процесс может занять буквально несколько часов, или даже дней.
 This runs the equivalent of two commands — `git svn init` followed by `git svn fetch` — on the URL you provide. This can take a while. The test project has only about 75 commits and the codebase isn’t that big, so it takes just a few minutes. However, Git has to check out each version, one at a time, and commit it individually. For a project with hundreds or thousands of commits, this can literally take hours or even days to finish.
 
+Часть команды `-T trunk -b branches -t tags` сообщает Git'у, что этот репозиторий Subversion следует стандартным соглашениям о ветвлении и простановке меток. Если вы именуете основную ветвь разработки, ветви и метки по-другому, то должны соответственно изменить эти параметры. В связи с тем, что эти соглашения являются общепринятыми, вы можете использовать короткий формат команды, заменив всю эту часть на `-s`, заменяющую собой все эти параметры. Следующая команда является полным эквивалентом предшествующей:
 The `-T trunk -b branches -t tags` part tells Git that this Subversion repository follows the basic branching and tagging conventions. If you name your trunk, branches, or tags differently, you can change these options. Because this is so common, you can replace this entire part with `-s`, which means standard layout and implies all those options. The following command is equivalent:
 
 	$ git svn clone file:///tmp/test-svn -s
 
+К этому моменту вы должны иметь корректный репозиторий Git с импортированными ветвями и метками:
 At this point, you should have a valid Git repository that has imported your branches and tags:
 
 	$ git branch -a
@@ -100,7 +107,8 @@ At this point, you should have a valid Git repository that has imported your bra
 	  tags/release-2.0.2rc1
 	  trunk
 
-It’s important to note how this tool namespaces your remote references differently. When you’re cloning a normal Git repository, you get all the branches on that remote server available locally as something like `origin/[branch]` - namespaced by the name of the remote. However, `git svn` assumes that you won’t have multiple remotes and saves all its references to points on the remote server with no namespacing. You can use the Git plumbing command `show-ref` to look at all your full reference names:
+Важно отметить, как эта утилита именует ваши ссылки на удалённые ресурсы. Когда вы клонируете обычный репозиторий Git, вы получаете все ветви с удалённого сервера на локальный компьютер в подобном виде: `origin/[branch]` — именуемые по имени удалённого сервера. Однако, `git svn` полагает, что у вас нет множества удалённых источников данных и сохраняет всю ссылочную информацию на удалённые источники без именования. Для просмотра всех имён ссылок вы можете использовать команду Git `show-ref`.
+It’s important to note how this tool namespaces your remote references differently. When you’re cloning a normal Git  repository, you get all the branches on that remote server available locally as something like `origin/[branch]` - namespaced by the name of the remote. However, `git svn` assumes that you won’t have multiple remotes and saves all its references to points on the remote server with no namespacing. You can use the Git plumbing command `show-ref` to look at all your full reference names:
 
 	$ git show-ref
 	1cbd4904d9982f386d87f88fce1c24ad7c0f0471 refs/heads/master
@@ -111,7 +119,7 @@ It’s important to note how this tool namespaces your remote references differe
 	1c4cb508144c513ff1214c3488abe66dcb92916f refs/remotes/tags/release-2.0.2rc1
 	1cbd4904d9982f386d87f88fce1c24ad7c0f0471 refs/remotes/trunk
 
-A normal Git repository looks more like this:
+Обычный репозиторий Git как правило выглядит подобным образом:
 
 	$ git show-ref
 	83e38c7a0af325a9722f2fdc56b10188806d83a1 refs/heads/master
@@ -119,7 +127,7 @@ A normal Git repository looks more like this:
 	0a30dd3b0c795b80212ae723640d4e5d48cabdff refs/remotes/origin/master
 	25812380387fdd55f916652be4881c6f11600d6f refs/remotes/origin/testing
 
-You have two remote servers: one named `gitserver` with a `master` branch; and another named `origin` with two branches, `master` and `testing`. 
+Вы имееете два удалённых сервера: один именуемый `gitserver` с ветвью `master`; и другой, именуемый `origin` с двумя ветвями, `master` и `testing`. 
 
 Notice how in the example of remote references imported from `git svn`, tags are added as remote branches, not as real Git tags. Your Subversion import looks like it has a remote named tags with branches under it.
 
