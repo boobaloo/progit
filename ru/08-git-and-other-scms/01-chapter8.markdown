@@ -381,14 +381,18 @@ You can also get the same sort of information that `svn info` gives you by runni
 Так же, как `blame` и `log`, эта команда выполняется оффлайн и выводит информацию, актуальную на момент последнего вашего обращения к серверу Subversion.
 This is like `blame` and `log` in that it runs offline and is up to date only as of the last time you communicated with the Subversion server.
 
-#### Ignoring What Subversion Ignores ####
+#### Игнорируем то, что игнорирует Subversion ####
+Ignoring What Subversion Ignores
 
+Если вы клонируете репозиторий Subversion, который имеет установленное повсюду свойства `svn:ignore`, скорее всего вы захотите создать соответствующие им файлы `.gitignore`, чтобы не изменить ненароком те файлы, которые вы не должны менять. Для этого, в `git svn` имеется две команды. Первая, `git svn create-ignore`, автоматически создаёт соответствующие файлы `.gitignore`, так что ваши последующие коммиты смогут их учитывать. 
 If you clone a Subversion repository that has `svn:ignore` properties set anywhere, you’ll likely want to set corresponding `.gitignore` files so you don’t accidentally commit files that you shouldn’t. `git svn` has two commands to help with this issue. The first is `git svn create-ignore`, which automatically creates corresponding `.gitignore` files for you so your next commit can include them.
 
+Вторая команда — `git svn show-ignore`, которая выводит на стандартный вывод строки, которые вы должны включить в файл `.gitignore`, таким образом вы можете перенаправить её вывод в файл исключений вашего проекта:
 The second command is `git svn show-ignore`, which prints to stdout the lines you need to put in a `.gitignore` file so you can redirect the output into your project exclude file:
 
 	$ git svn show-ignore > .git/info/exclude
 
+Поступая таким образом, вы не захламляете проект файлами `.gitignore`. Это отличный подход, если вы являетесь единственным пользователем Git в вашей команде, использующей Subversion, и ваши коллеги против наличия файлов `.gitignore` в проекте.
 That way, you don’t litter the project with `.gitignore` files. This is a good option if you’re the only Git user on a Subversion team, and your teammates don’t want `.gitignore` files in the project.
 
 ### Заключение по Git-Svn ###
