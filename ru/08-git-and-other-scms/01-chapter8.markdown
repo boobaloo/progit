@@ -612,7 +612,6 @@ To begin, you’ll change into the target directory and identify every subdirect
 	  end
 	end
 
-Вы запускаете команду `print_export` внутри каждого каталога, 
 You run `print_export` inside each directory, which takes the manifest and mark of the previous snapshot and returns the manifest and mark of this one; that way, you can link them properly. "Mark" is the `fast-import` term for an identifier you give to a commit; as you create commits, you give each one a mark that you can use to link to it from other commits. So, the first thing to do in your `print_export` method is generate a mark from the directory name:
 
 	mark = convert_dir_to_mark(dir)
