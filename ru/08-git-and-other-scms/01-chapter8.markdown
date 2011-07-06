@@ -309,12 +309,15 @@ Now, if you want to merge your `opera` branch into `trunk` (your `master` branch
 Помните, что хотя вы и используете `git merge` для этой операции, и слияние скорее всего произойдёт намного проще, чем было бы в Subversion (из-за того, что Git автоматически определяет подходящую основу для слияния), это не является обычным коммитом-слиянием Git. Вы должны передать данные обратно на сервер Subversion, который не способен обрабатывать коммит, относящийся более, чем к одному родителю, так что после передачи этот коммит будет выглядеть как единый коммит, в котором смешаны все изменения по другой ветви. После того, как вы сольёте одну ветвь с другой, вы не сможете просто так вернуться к работе над ней, как вы могли бы в Git. Команда `dcommit` удаляет всю информацию о том, какая ветвь была влита, так что последующие вычисления базы слияния будут неверными — команда `dcommit` сделает результаты выполнения `git merge` такими же, какими они были бы после выполнения `git merge --squash`. К сожалению избежать подобной ситуации вряд ли удастся — Subversion не способен сохранять подобную информацию, так что вы всегда будете связаны этими ограничениями. Во избежание проблем вы должны удалить локальную ветвь (в нашем случае `opera`) после того, как вы вольёте её в `trunk`.
 Remember that although you’re using `git merge` to do this operation, and the merge likely will be much easier than it would be in Subversion (because Git will automatically detect the appropriate merge base for you), this isn’t a normal Git merge commit. You have to push this data back to a Subversion server that can’t handle a commit that tracks more than one parent; so, after you push it up, it will look like a single commit that squashed in all the work of another branch under a single commit. After you merge one branch into another, you can’t easily go back and continue working on that branch, as you normally can in Git. The `dcommit` command that you run erases any information that says what branch was merged in, so subsequent merge-base calculations will be wrong — the dcommit makes your `git merge` result look like you ran `git merge --squash`. Unfortunately, there’s no good way to avoid this situation — Subversion can’t store this information, so you’ll always be crippled by its limitations while you’re using it as your server. To avoid issues, you should delete the local branch (in this case, `opera`) after you merge it into trunk.
 
-### Subversion Commands ###
+### Команды Subversion ###
+Subversion Commands
 
-The `git svn` toolset provides a number of commands to help ease the transition to Git by providing some functionality that’s similar to what you had in Subversion. Here are a few commands that give you what Subversion used to.
+Набор утилит `git svn` предоставляет в ваше распоряжение несколько команд для облегчения перехода на Git, путём предоставления функциональности, подобной той, которую вы имеете в Subversion. Ниже приведены несколько команд, которые дают вам то, что вы имели в Subversion.
 
-#### SVN Style History ####
+#### Просмотр истории изменений в стиле SVN ####
+SVN Style History
 
+Если вы до этого использовали Subversion и хотите просмотреть историю изменений в стиле SVN, выполните команду `git svn log`:
 If you’re used to Subversion and want to see your history in SVN output style, you can run `git svn log` to view your commit history in SVN formatting:
 
 	$ git svn log
@@ -333,6 +336,7 @@ If you’re used to Subversion and want to see your history in SVN output style,
 	
 	updated the changelog
 
+Вы должны знать две важные вещи о команде `git svn log`. Во-первых, она работает в оффлайне, в отличие от оригинальной команды `svn log`, которая запрашивает информацию с сервера Subversion. Во-вторых, эта команда отображает только те коммиты, которые были переданы на сервер Subversion. Локальные коммиты Git, которые вы ещё не отправили с помощью `dcommit` не будут отображаться, равно как и те коммиты, которые были отправлены на сервер Subversion в то же самое время. Результат действия этой команды более всего похож на последнее известное состояние изменений на сервере Subversion. 
 You should know two important things about `git svn log`. First, it works offline, unlike the real `svn log` command, which asks the Subversion server for the data. Second, it only shows you commits that have been committed up to the Subversion server. Local Git commits that you haven’t dcommited don’t show up; neither do commits that people have made to the Subversion server in the meantime. It’s more like the last known state of the commits on the Subversion server.
 
 #### SVN Annotation ####
@@ -355,7 +359,7 @@ Much as the `git svn log` command simulates the `svn log` command offline, you c
 
 Again, it doesn’t show commits that you did locally in Git or that have been pushed to Subversion in the meantime.
 
-#### SVN Server Information ####
+#### Информация о сервере SVN ####
 
 You can also get the same sort of information that `svn info` gives you by running `git svn info`:
 
@@ -383,7 +387,7 @@ The second command is `git svn show-ignore`, which prints to stdout the lines yo
 
 That way, you don’t litter the project with `.gitignore` files. This is a good option if you’re the only Git user on a Subversion team, and your teammates don’t want `.gitignore` files in the project.
 
-### Git-Svn Summary ###
+### Заключение по Git-Svn ###
 
 The `git svn` tools are useful if you’re stuck with a Subversion server for now or are otherwise in a development environment that necessitates running a Subversion server. You should consider it crippled Git, however, or you’ll hit issues in translation that may confuse you and your collaborators. To stay out of trouble, try to follow these guidelines:
 
@@ -392,11 +396,12 @@ The `git svn` tools are useful if you’re stuck with a Subversion server for no
 
 If you follow those guidelines, working with a Subversion server can be more bearable. However, if it’s possible to move to a real Git server, doing so can gain your team a lot more.
 
-## Migrating to Git ##
+## Миграция на Git ##
+Migrating to Git
 
 If you have an existing codebase in another VCS but you’ve decided to start using Git, you must migrate your project one way or another. This section goes over some importers that are included with Git for common systems and then demonstrates how to develop your own custom importer.
 
-### Importing ###
+### Импортирование ###
 
 You’ll learn how to import data from two of the bigger professionally used SCM systems — Subversion and Perforce — both because they make up the majority of users I hear of who are currently switching, and because high-quality tools for both systems are distributed with Git.
 
@@ -733,6 +738,7 @@ There you go — a nice, clean Git repository. It’s important to note that not
 
 You can do a lot more with the `fast-import` tool — handle different modes, binary data, multiple branches and merging, tags, progress indicators, and more. A number of examples of more complex scenarios are available in the `contrib/fast-import` directory of the Git source code; one of the better ones is the `git-p4` script I just covered.
 
-## Summary ##
+## Заключение ##
 
-You should feel comfortable using Git with Subversion or importing nearly any existing repository into a new Git one without losing data. The next chapter will cover the raw internals of Git so you can craft every single byte, if need be.
+Теперь, вы должны чувствовать себя уверенно при совместной работе в Git и Subversion, либо при выполнении импорта практически любого существующего репозитория в репозиторий Git без потерь данных. Следующая глава раскроет перед вами внутреннюю механику Git, так что вы будете способны восстановить каждый байт, если потребуется.
+ You should feel comfortable using Git with Subversion or importing nearly any existing repository into a new Git one without losing data. The next chapter will cover the raw internals of Git so you can craft every single byte, if need be.
