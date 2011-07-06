@@ -424,22 +424,27 @@ You’ll learn how to import data from two of the bigger professionally used SCM
 Если прочтёте предыдущий раздел об использовании `git svn`, вы можете с лёгкостью использовать все инструкции, имеющиеся там для клонирования репозитория через `git svn clone`, отказа от использования сервера Subversion, перехода на новый сервер Git и начала его использования. Если вам требуется сохранить историю изменений, вы можете сделать это так же быстро, как получить данные с сервера Subversion (что однако может занять какое-то время).
 If you read the previous section about using `git svn`, you can easily use those instructions to `git svn clone` a repository; then, stop using the Subversion server, push to a new Git server, and start using that. If you want the history, you can accomplish that as quickly as you can pull the data out of the Subversion server (which may take a while).
 
+Несмотря на это, импортирование не будет безупречным. Первой проблемой является информация об авторах изменений. В Subversion каждый коммитер имеет свою учётную запись в системе, которая отображается в информации о коммите. Примеры в предыдущем разделе показывают `schacon` в некоторых местах, например в выводе команд `blame` и `git svn log`. Если вы хотите преобразовать эту информацию для лучшего соответствия данным об авторах в Git, вам потребуется перейти от пользователей Subversion к авторам Git. Создайте файл `users.txt`, в котором будут содержаться данные о таком преобразовании в подобном формате:
 However, the import isn’t perfect; and because it will take so long, you may as well do it right. The first problem is the author information. In Subversion, each person committing has a user on the system who is recorded in the commit information. The examples in the previous section show `schacon` in some places, such as the `blame` output and the `git svn log`. If you want to map this to better Git author data, you need a mapping from the Subversion users to the Git authors. Create a file called `users.txt` that has this mapping in a format like this:
 
 	schacon = Scott Chacon <schacon@geemail.com>
 	selse = Someo Nelse <selse@geemail.com>
 
+Для того, чтобы получить список авторов, который использует SVN, вы можете выполнить этот скрипт:
 To get a list of the author names that SVN uses, you can run this:
 
 	$ svn log --xml | grep author | sort -u | perl -pe 's/.>(.?)<./$1 = /'
 
+Он даст на выходе журнал в формате XML — в нём вы найдёте информацию об авторах, создадите из неё список с уникальными записями и избавитесь от XML разметки. (Конечно, этот скрипт сможет работать только на машине с установленными `grep`, `sort`, и `perl`). Затем перенаправьте вывод этого скрипта в свой файл users.txt, таким образом вы сможете добавить соответствующую информацию Git к каждой записи. 
 That gives you the log output in XML format — you can look for the authors, create a unique list, and then strip out the XML. (Obviously this only works on a machine with `grep`, `sort`, and `perl` installed.) Then, redirect that output into your users.txt file so you can add the equivalent Git user data next to each entry.
 
+Вы можете передать этот файл как параметр команде `git svn`, для более точного преобразования данных об авторах. Кроме того, можно дать указание `git svn` не включать метаданные, обычно импортируемые Subversion, путём передачи параметра `--no-metadata` команде `clone` или `init`. Тогда команда `import` будет выглядеть следующим образом:
 You can provide this file to `git svn` to help it map the author data more accurately. You can also tell `git svn` not to include the metadata that Subversion normally imports, by passing `--no-metadata` to the `clone` or `init` command. This makes your `import` command look like this:
 
 	$ git-svn clone http://my-project.googlecode.com/svn/ \
 	      --authors-file=users.txt --no-metadata -s my_project
 
+Теперь у вас будет иметься более красивые данные импортирования в вашем каталоге `my_project`. В отличие от коммитов, которые выглядят так:
 Now you should have a nicer Subversion import in your `my_project` directory. Instead of commits that look like this
 
 	commit 37efa680e8473b615de980fa935944215428a35a
@@ -450,7 +455,8 @@ Now you should have a nicer Subversion import in your `my_project` directory. In
 
 	    git-svn-id: https://my-project.googlecode.com/svn/trunk@94 4c93b258-373f-11de-
 	    be05-5f7a86268029
-they look like this:
+
+они будут выглядеть подобным образом:
 
 	commit 03a8785f44c8ea5cdb0e8834b7c8e6c469be2ff2
 	Author: Scott Chacon <schacon@geemail.com>
@@ -458,43 +464,53 @@ they look like this:
 
 	    fixed install - go to trunk
 
-Not only does the Author field look a lot better, but the `git-svn-id` is no longer there, either.
+Теперь не только поле Author выглядит намного лучше, но и строка с `git-svn-id` больше не присутствует в выводе.
 
-You need to do a bit of `post-import` cleanup. For one thing, you should clean up the weird references that `git svn` set up. First you’ll move the tags so they’re actual tags rather than strange remote branches, and then you’ll move the rest of the branches so they’re local.
+Вам потребуется сделать небольшую «уборку» после импорта. Сначала вам нужно убрать странные ссылки, оставленные `git svn`. Во-первых вы переместите все метки, которые являются реальными метками, а не странными удалёнными ветвями, а затем вы переместите остальные ветки, так, чтобы они стали локальными. 
+For one thing, you should clean up the weird references that `git svn` set up. First you’ll move the tags so they’re actual tags rather than strange remote branches, and then you’ll move the rest of the branches so they’re local.
 
+Для приведения меток к корректному виду меток Git, выполните:
 To move the tags to be proper Git tags, run
 
 	$ cp -Rf .git/refs/remotes/tags/* .git/refs/tags/
 	$ rm -Rf .git/refs/remotes/tags
 
+Эти действия переместят ссылки, которые были удалёнными ветвями, начинающимися с `tag/` и сделают их реальными (легковесными) метками.
 This takes the references that were remote branches that started with `tag/` and makes them real (lightweight) tags.
 
+Затем, переместите остальные ссылки в `refs/remotes`, так, чтобы они стали локальными ветвями:
 Next, move the rest of the references under `refs/remotes` to be local branches:
 
 	$ cp -Rf .git/refs/remotes/* .git/refs/heads/
 	$ rm -Rf .git/refs/remotes
 
+Теперь все старые ветви стали реальными ветвями Git, а все старые метки — реальными метками Git. Последним действием будет добавление вашего сервера Git, как удалённого ресурса и передача на него данных. Вот пример добавления вашего сервера как удалённого источника:
 Now all the old branches are real Git branches and all the old tags are real Git tags. The last thing to do is add your new Git server as a remote and push to it. Here is an example of adding your server as a remote:
 
 	$ git remote add origin git@my-git-server:myrepository.git
 
+Так как вы хотите, чтобы все ваши ветви и метки были переданы на этот сервер, выполните:
 Because you want all your branches and tags to go up, you can now run this:
 
 	$ git push origin --all
 
+Теперь все ветви и метки должны быть прекрасно импортированы на новый сервер Git.
 All your branches and tags should be on your new Git server in a nice, clean import.
 
 ### Perforce ###
 
+Следующей системой, для которой мы рассмотрим процедуру импортирования будет Perforce. Утилита импортирования для Perforce также входит в состав Git, но только в секции `contrib` исходного кода — она не доступна по умолчанию, как `git svn`. Для того, чтобы запустить её, вам потребуется получить исходный код Git, располагающийся на git.kernel.org:
 The next system you’ll look at importing from is Perforce. A Perforce importer is also distributed with Git, but only in the `contrib` section of the source code — it isn’t available by default like `git svn`. To run it, you must get the Git source code, which you can download from git.kernel.org:
 
 	$ git clone git://git.kernel.org/pub/scm/git/git.git
 	$ cd git/contrib/fast-import
 
+В каталоге `fast-import` вы найдёте исполняемый скрипт Python, с названием `git-p4`. Вы должны иметь на вашем компьютере установленный Python и утилиту `p4` для того, чтобы эта утилита смогла работать. Допустим, например, что вы импортируете проект Jam из Perforce Public Depot. Для настройки вашей клиентской машины, вы должны установить переменную окружения P4PORT, указывающую на депо Perforce: 
 In this `fast-import` directory, you should find an executable Python script named `git-p4`. You must have Python and the `p4` tool installed on your machine for this import to work. For example, you’ll import the Jam project from the Perforce Public Depot. To set up your client, you must export the P4PORT environment variable to point to the Perforce depot:
 
 	$ export P4PORT=public.perforce.com:1666
 
+Запустите команду `git-p4 clone` для импортирования проекта Jam с сервера Perforce, передав в качестве параметров депо и путь к проекту, а также путь к месту, куда вы хотите импортировать проект:
 Run the `git-p4 clone` command to import the Jam project from the Perforce server, supplying the depot and project path and the path into which you want to import the project:
 
 	$ git-p4 clone //public/jam/src@all /opt/p4import
@@ -503,7 +519,7 @@ Run the `git-p4 clone` command to import the Jam project from the Perforce serve
 	Import destination: refs/remotes/p4/master
 	Importing revision 4409 (100%)
 
-Если вы перейдёте в каталог `/opt/p4import` и выполните `git log`, вы увидите импортированную информацию:
+Если вы теперь перейдёте в каталог `/opt/p4import` и выполните команду `git log`, вы увидите импортированную информацию:
 If you go to the `/opt/p4import` directory and run `git log`, you can see your imported work:
 
 	$ git log -2
@@ -526,7 +542,7 @@ If you go to the `/opt/p4import` directory and run `git log`, you can see your i
 
 	    [git-p4: depot-paths = "//public/jam/src/": change = 3108]
 
-Для каждого коммита можно видеть идентификатор `git-p4`. Оставить этот идентификатор на месте будет отличным решением, если вам понадобится позже номер изменения Perforce. Однако, если вы всё же хотите удалить этот идентификатор — теперь самое время это сделать, до того, как вы начнёте работать в новом репозитории. Вы можете применить команду `git filter-branch` для одновременного удаления всех строк с идентификатором:
+Для каждого коммита можно видеть идентификатор `git-p4`. Оставить этот идентификатор на месте будет отличным решением, если позже вам понадобится узнать номер изменения в Perforce. Однако, если вы всё же хотите удалить этот идентификатор — теперь самое время это сделать, до того, как вы начнёте работать в новом репозитории. Вы можете выполнить команду `git filter-branch` для одновременного удаления всех строк с идентификатором:
 You can see the `git-p4` identifier in each commit. It’s fine to keep that identifier there, in case you need to reference the Perforce change number later. However, if you’d like to remove the identifier, now is the time to do so — before you start doing work on the new repository. You can use `git filter-branch` to remove the identifier strings en masse:
 
 	$ git filter-branch --msg-filter '
@@ -535,7 +551,7 @@ You can see the `git-p4` identifier in each commit. It’s fine to keep that ide
 	Rewrite 1fd4ec126171790efd2db83548b85b1bbbc07dc2 (123/123)
 	Ref 'refs/heads/master' was rewritten
 
-Если вы выполните теперь `git log`, то увидите, что все контрольные суммы SHA-1 изменились и что строки, содержащие `git-p4` больше не появляются в листинге коммитов:
+Если вы выполните теперь `git log`, то увидите, что все контрольные суммы SHA-1 изменились и что строки, содержащие `git-p4` больше не появляются в списке коммитов:
 If you run `git log`, you can see that all the SHA-1 checksums for the commits have changed, but the `git-p4` strings are no longer in the commit messages:
 
 	$ git log -2
