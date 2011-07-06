@@ -339,8 +339,9 @@ If you’re used to Subversion and want to see your history in SVN output style,
 Вы должны знать две важные вещи о команде `git svn log`. Во-первых, она работает в оффлайне, в отличие от оригинальной команды `svn log`, которая запрашивает информацию с сервера Subversion. Во-вторых, эта команда отображает только те коммиты, которые были переданы на сервер Subversion. Локальные коммиты Git, которые вы ещё не отправили с помощью `dcommit` не будут отображаться, равно как и те коммиты, которые были отправлены на сервер Subversion в то же самое время. Результат действия этой команды более всего похож на последнее известное состояние изменений на сервере Subversion. 
 You should know two important things about `git svn log`. First, it works offline, unlike the real `svn log` command, which asks the Subversion server for the data. Second, it only shows you commits that have been committed up to the Subversion server. Local Git commits that you haven’t dcommited don’t show up; neither do commits that people have made to the Subversion server in the meantime. It’s more like the last known state of the commits on the Subversion server.
 
-#### SVN Annotation ####
+#### Аннотации SVN ####
 
+Также, как команда `git svn log` симулирует в оффлайне команду `svn log`, эквивалентом команды `svn annotate` является команда `git svn blame [FILE]`. результатом её выполнения будет:
 Much as the `git svn log` command simulates the `svn log` command offline, you can get the equivalent of `svn annotate` by running `git svn blame [FILE]`. The output looks like this:
 
 	$ git svn blame README.txt 
@@ -357,10 +358,12 @@ Much as the `git svn log` command simulates the `svn log` command offline, you c
 	 2   temporal Buffer compiler (protoc) execute the following:
 	 2   temporal 
 
+Опять же, эта команда не показывает коммиты, которые вы сделали локально в Git, либо которые были отправлены на сервер Subversion во время её выполнения.
 Again, it doesn’t show commits that you did locally in Git or that have been pushed to Subversion in the meantime.
 
 #### Информация о сервере SVN ####
 
+Вы можете получить такую же информацию, которую даёт выполнение команды `svn info` выполнив команду `git svn info`:
 You can also get the same sort of information that `svn info` gives you by running `git svn info`:
 
 	$ git svn info
@@ -375,6 +378,7 @@ You can also get the same sort of information that `svn info` gives you by runni
 	Last Changed Rev: 87
 	Last Changed Date: 2009-05-02 16:07:37 -0700 (Sat, 02 May 2009)
 
+Так же, как `blame` и `log`, эта команда выполняется оффлайн и выводит информацию, актуальную на момент последнего вашего обращения к серверу Subversion.
 This is like `blame` and `log` in that it runs offline and is up to date only as of the last time you communicated with the Subversion server.
 
 #### Ignoring What Subversion Ignores ####
@@ -488,6 +492,7 @@ Run the `git-p4 clone` command to import the Jam project from the Perforce serve
 	Import destination: refs/remotes/p4/master
 	Importing revision 4409 (100%)
 
+Если вы перейдёте в каталог `/opt/p4import` и выполните `git log`, вы увидите импортированную информацию:
 If you go to the `/opt/p4import` directory and run `git log`, you can see your imported work:
 
 	$ git log -2
@@ -510,6 +515,7 @@ If you go to the `/opt/p4import` directory and run `git log`, you can see your i
 
 	    [git-p4: depot-paths = "//public/jam/src/": change = 3108]
 
+Для каждого коммита можно видеть идентификатор `git-p4`. Оставить этот идентификатор на месте будет отличным решением, если вам понадобится позже номер изменения Perforce. Однако, если вы всё же хотите удалить этот идентификатор — теперь самое время это сделать, до того, как вы начнёте работать в новом репозитории. Вы можете применить команду `git filter-branch` для одновременного удаления всех строк с идентификатором:
 You can see the `git-p4` identifier in each commit. It’s fine to keep that identifier there, in case you need to reference the Perforce change number later. However, if you’d like to remove the identifier, now is the time to do so — before you start doing work on the new repository. You can use `git filter-branch` to remove the identifier strings en masse:
 
 	$ git filter-branch --msg-filter '
@@ -518,6 +524,7 @@ You can see the `git-p4` identifier in each commit. It’s fine to keep that ide
 	Rewrite 1fd4ec126171790efd2db83548b85b1bbbc07dc2 (123/123)
 	Ref 'refs/heads/master' was rewritten
 
+Если вы выполните теперь `git log`, то увидите, что все контрольные суммы SHA-1 изменились и что строки, содержащие `git-p4` больше не появляются в листинге коммитов:
 If you run `git log`, you can see that all the SHA-1 checksums for the commits have changed, but the `git-p4` strings are no longer in the commit messages:
 
 	$ git log -2
@@ -536,6 +543,7 @@ If you run `git log`, you can see that all the SHA-1 checksums for the commits h
 
 	    Update derived jamgram.c
 
+Ваш импортируемый репозиторий готов к переезду на новый сервер Git.
 Your import is ready to push up to your new Git server.
 
 ### A Custom Importer ###
