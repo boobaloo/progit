@@ -397,16 +397,21 @@ That way, you don’t litter the project with `.gitignore` files. This is a good
 
 ### Заключение по Git-Svn ###
 
+Утилиты `git svn` полезны в том случае, если вы привязаны к серверу Subversion. Этот сервер можно рассматривать как увечный  Git, однако, чтобы избежать возможных проблем для себя и своих коллег следует придерживаться следующих правил:  
 The `git svn` tools are useful if you’re stuck with a Subversion server for now or are otherwise in a development environment that necessitates running a Subversion server. You should consider it crippled Git, however, or you’ll hit issues in translation that may confuse you and your collaborators. To stay out of trouble, try to follow these guidelines:
 
-* Keep a linear Git history that doesn’t contain merge commits made by `git merge`. Rebase any work you do outside of your mainline branch back onto it; don’t merge it in.
+* Сохраняйте историю изменений Git линейной, чтобы она не содержала коммитов, сделанных с помощью `git merge`. Перемещайте всю работу, которую вы выполняете вне основной ветви обратно в неё; не выполняйте сливание изменений.
+* Не устанавливайте и не работайте совместно на отдельном сервере Git. Возможно иметь один такой сервер для того, чтобы ускорить клонирование для новых разработчиков, но не отправляйте на него ничего, не имеющего записи `git-svn-id`. Возможно, вы захотите даже добавить перехватчик `pre-receive`, который будет проверять каждый коммит на наличие `git-svn-id` и отклонять передачи, коммиты в которых не имеют этой записи.
+* Keep a linear Git history that doesn’t contain merge commits made by `git merge`. Rebase any work you do outside of your mainline branch back onto it; don’t merge it in. 
 * Don’t set up and collaborate on a separate Git server. Possibly have one to speed up clones for new developers, but don’t push anything to it that doesn’t have a `git-svn-id` entry. You may even want to add a `pre-receive` hook that checks each commit message for a `git-svn-id` and rejects pushes that contain commits without it.
 
+При следовании этим правилам, работа с сервером Subversion может быть более сносной. Однако, если возможен перенос проекта на реальный сервер Git, преимущества от этого переноса дадут вашему проекту намного больше. 
 If you follow those guidelines, working with a Subversion server can be more bearable. However, if it’s possible to move to a real Git server, doing so can gain your team a lot more.
 
 ## Миграция на Git ##
 Migrating to Git
 
+Если у вас уже есть база кода на другом сервере контроля версий, но вы решили начать использовать Git, вы должны использовать тот или иной способ миграции. Этот раздел описывает некоторые инструменты для импортирования проектов, включённые в состав Git для самых распространённых систем, в конце описывается создание вашего собственного инструмента для переноса.
 If you have an existing codebase in another VCS but you’ve decided to start using Git, you must migrate your project one way or another. This section goes over some importers that are included with Git for common systems and then demonstrates how to develop your own custom importer.
 
 ### Импортирование ###
