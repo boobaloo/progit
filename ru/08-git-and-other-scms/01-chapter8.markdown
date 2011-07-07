@@ -595,7 +595,7 @@ In order to import a Git directory, you need to review how Git stores its data. 
 Так же, как как и в главе 7, в разделе «Пример создания политики в Git» мы напишем скрипт на Ruby, поскольку это то, с чем я обычно работаю, кроме того он легко читается. Но вы можете создать его на любом другом языке, которым владеете — он просто должен выводить необходимую информацию на стандартный выход. Если вы работаете на Windows, то должны особым образом позаботиться о том, чтобы в конце строк не содержались символы возврата каретки — `git fast-import` принимает только символ перевода строки (LF), а не символ перевода строки и возврата каретки (CRLF), который повсеместно используется в Windows.
 As you did in the "An Example Git Enforced Policy" section of Chapter 7, we’ll write this in Ruby, because it’s what I generally work with and it tends to be easy to read. You can write this example pretty easily in anything you’re familiar with — it just needs to print the appropriate information to stdout. And, if you are running on Windows, this means you'll need to take special care to not introduce carriage returns at the end your lines — git fast-import is very particular about just wanting line feeds (LF) not the carriage return line feeds (CRLF) that Windows uses.
 
-Для того, чтобы начать вы должны перейти в целевой каталог и идентифицировать каждый подкаталог, являющийся снимком состояния, которые вы хотите импортировать в виде коммита. Основной цикл будет выглядеть следующим образом: 
+Для того, чтобы начать, вы должны перейти в целевой каталог и идентифицировать каждый подкаталог, являющийся снимком состояния, который вы хотите импортировать в виде коммита. Основной цикл будет выглядеть следующим образом: 
 To begin, you’ll change into the target directory and identify every subdirectory, each of which is a snapshot that you want to import as a commit. You’ll change into each subdirectory and print the commands necessary to export it. Your basic main loop looks like this:
 
 	last_mark = nil
@@ -612,10 +612,12 @@ To begin, you’ll change into the target directory and identify every subdirect
 	  end
 	end
 
+Вы запускаете метод `print_export` внутри каждого каталога, которая берёт запись и отметку предыдущего снимка и возвращает запись и отметку текущего; таким образом они соединяются нужным образом между собой. «Отметка» — это термин утилиты `fast-import`, обозначающий идентификатор, который вы даёте коммиту; когда вы создаёте коммиты, вы назначаете каждому из них отметку, которую можно использовать для связи с другими коммитами. Таким образом, первая операция, которую надо включить в метод `print_export`, это генерация отметки из имени каталога:
 You run `print_export` inside each directory, which takes the manifest and mark of the previous snapshot and returns the manifest and mark of this one; that way, you can link them properly. "Mark" is the `fast-import` term for an identifier you give to a commit; as you create commits, you give each one a mark that you can use to link to it from other commits. So, the first thing to do in your `print_export` method is generate a mark from the directory name:
 
 	mark = convert_dir_to_mark(dir)
 
+Мы сделаем это путём создания массива каталогов и используя значение порядкового номера, как отметку, поскольку отметка должна быть целым числом:
 You’ll do this by creating an array of directories and using the index value as the mark, because a mark must be an integer. Your method looks like this:
 
 	$marks = []
@@ -626,10 +628,12 @@ You’ll do this by creating an array of directories and using the index value a
 	  ($marks.index(dir) + 1).to_s
 	end
 
+Теперь, когда мы имеем целочисленное представление вашего коммита, мы должны указать дату коммита в метаданных. Поскольку дата имеется в имени каталога, мы используем её. Следующей строкой в сценарии `print_export` будет:
 Now that you have an integer representation of your commit, you need a date for the commit metadata. Because the date is expressed in the name of the directory, you’ll parse it out. The next line in your `print_export` file is
 
 	date = convert_dir_to_date(dir)
 
+где метод `convert_dir_to_date` определён, как:
 where `convert_dir_to_date` is defined as
 
 	def convert_dir_to_date(dir)
@@ -642,6 +646,7 @@ where `convert_dir_to_date` is defined as
 	  end
 	end
 
+Этот метод возвращает целочисленное значение даты для каждого каталога. Последняя часть метаданных коммита содержит данные о коммитере, которые мы жёстко задаём в глобальной переменной:
 That returns an integer value for the date of each directory. The last piece of meta-information you need for each commit is the committer data, which you hardcode in a global variable:
 
 	$author = 'Scott Chacon <schacon@example.com>'
@@ -655,17 +660,21 @@ Now you’re ready to begin printing out the commit data for your importer. The 
 	export_data('imported from ' + dir)
 	puts 'from :' + last_mark if last_mark
 
+Мы жёстко задаём часовой пояс (-0700), поскольку это проще всего. Если вы импортируете данные из другой системы, вы должны указать часовой пояс в виде смещения.
+Сообщение коммита должно быть представлено в особом формате:
 You hardcode the time zone (-0700) because doing so is easy. If you’re importing from another system, you must specify the time zone as an offset. 
 The commit message must be expressed in a special format:
 
 	data (size)\n(contents)
 
+Формат состоит из слова `data`, размера данных, которые требуется прочесть, переноса строки и, наконец, самих данных. Поскольку нам потребуется использовать такой же формат позже, для описания содержимого файла, создадим вспомогательный метод, `export_data`: 
 The format consists of the word data, the size of the data to be read, a newline, and finally the data. Because you need to use the same format to specify the file contents later, you create a helper method, `export_data`:
 
 	def export_data(string)
 	  print "data #{string.size}\n#{string}"
 	end
 
+Всё что нам осталось, это описать содержимое файла для каждого снимка состояния. Это просто, поскольку каждый из них содержится в каталоге, мы можем вывести команду `deleteall`, за которой следует содержимого каждого файла в каталоге. После этого Git соответствующим образом позаботится о регистрации каждого снимка:
 All that’s left is to specify the file contents for each snapshot. This is easy, because you have each one in a directory — you can print out the `deleteall` command followed by the contents of each file in the directory. Git will then record each snapshot appropriately:
 
 	puts 'deleteall'
@@ -674,15 +683,17 @@ All that’s left is to specify the file contents for each snapshot. This is eas
 	  inline_data(file)
 	end
 
+Примечание: поскольку многие системы представляют ревизии кода, как изменения от одного коммита до другого, `fast-import` может применять определённые команды к каждому коммиту, для описания того, какие файлы были добавлены, удалены или модифицированы, и для описания нового содержимого. Вы можете выявить разность между снимками состояния и подготовить только эти данные, но это более сложная задача, кроме того вы можете предоставить Git все данные для того, чтобы он сам разобрался в них. Если этот подход наиболее удобен для вашего случая, обратитесь к справочной странице `fast-import` для получения подробностей подготовки данных таким способом.
 Note:	Because many systems think of their revisions as changes from one commit to another, fast-import can also take commands with each commit to specify which files have been added, removed, or modified and what the new contents are. You could calculate the differences between snapshots and provide only this data, but doing so is more complex — you may as well give Git all the data and let it figure it out. If this is better suited to your data, check the `fast-import` man page for details about how to provide your data in this manner.
 
+Формат для вывода содержимого нового файла, либо описания изменённого файла с новым содержимым представлен ниже:
 The format for listing the new file contents or specifying a modified file with the new contents is as follows:
 
 	M 644 inline path/to/file
 	data (size)
 	(file contents)
 
-Здесь, 644 — это права доступа (если в проекте есть исполняемые файлы, вам надо выявить их и назначить им права доступа 755, а параметр `inline` говорит о том, что содержимое будет выводиться непосредственно после этой строки. Таким образом, метод `inline_data` будет выглядеть следующим образом:
+Здесь, 644 — это права доступа (если в проекте есть исполняемые файлы, вам надо выявить их и назначить им права доступа 755), а параметр `inline` говорит о том, что содержимое будет выводиться непосредственно после этой строки. Таким образом, метод `inline_data` будет выглядеть следующим образом:
 Here, 644 is the mode (if you have executable files, you need to detect and specify 755 instead), and inline says you’ll list the contents immediately after this line. Your `inline_data` method looks like this:
 
 	def inline_data(file, code = 'M', mode = '644')
@@ -691,7 +702,7 @@ Here, 644 is the mode (if you have executable files, you need to detect and spec
 	  export_data(content)
 	end
 
-Мы повторно используем метод `export_data`, определённый ранее, поскольку он работает тут также, как при выводе сообщений о коммитах.
+Мы повторно используем метод `export_data`, определённый ранее, поскольку он работает тут также, как при выводе сообщений  коммитов.
 You reuse the `export_data` method you defined earlier, because it’s the same as the way you specified your commit message data. 
 
 Напоследок вам надо вернуть текущую отметку для использования её в следующей итерации:
@@ -790,5 +801,5 @@ You can do a lot more with the `fast-import` tool — handle different modes, bi
 
 ## Заключение ##
 
-Теперь, вы должны чувствовать себя уверенно при совместной работе в Git и Subversion, либо при выполнении импорта практически любого существующего репозитория в репозиторий Git без потерь данных. Следующая глава раскроет перед вами внутреннюю механику Git, так что вы будете способны восстановить каждый байт, если потребуется.
+После всего вышесказанного, вы должны чувствовать себя уверенно при совместной работе в Git и Subversion и при выполнении импортирования практически любого существующего репозитория в репозиторий Git без потерь данных. Следующая глава раскроет перед вами внутреннюю механику Git, так что вы будете способны восстановить каждый байт, если потребуется.
  You should feel comfortable using Git with Subversion or importing nearly any existing repository into a new Git one without losing data. The next chapter will cover the raw internals of Git so you can craft every single byte, if need be.
